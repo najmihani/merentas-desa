@@ -7,123 +7,149 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Poppins', sans-serif; background-color: #f4f7f6; }
-        .navbar { background-color: #2c3e50; color: white; }
-        
-        /* Dashboard Colors */
-        .card-merah { background-color: #ff4d4d; color: white; }
-        .card-biru { background-color: #4d94ff; color: white; }
-        .card-kuning { background-color: #ffeb3b; color: #333; }
-        .card-hijau { background-color: #4caf50; color: white; }
-        .card-ungu { background-color: #9c27b0; color: white; }
-        
-        .rank-card { transition: transform 0.3s; border: none; border-radius: 15px; }
-        .rank-card:hover { transform: translateY(-5px); }
-        
+        body { font-family: 'Poppins', sans-serif; background-color: #f0f2f5; }
+        .navbar { background-color: #1a252f; color: white; border-bottom: 4px solid #f39c12; }
         .hidden { display: none; }
-        @media print { .no-print { display: none; } }
+        
+        /* Dashboard Styling */
+        .card-merah { background: #dc3545; color: white; }
+        .card-biru { background: #0d6efd; color: white; }
+        .card-kuning { background: #ffc107; color: #212529; }
+        .card-hijau { background: #198754; color: white; }
+        .card-ungu { background: #6f42c1; color: white; }
+        
+        .rank-card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .btn-custom { border-radius: 25px; padding: 10px 25px; font-weight: bold; }
+        
+        @media print { 
+            .no-print, .btn, .navbar, .nav-tabs { display: none !important; }
+            .container { width: 100%; max-width: 100%; }
+        }
     </style>
 </head>
 <body>
 
 <nav class="navbar navbar-expand-lg px-4 py-3 no-print">
-    <span class="navbar-brand mb-0 h1">🏃 SMK JINJANG CROSS COUNTRY</span>
-    <button class="btn btn-outline-light ms-auto" onclick="showLogin()">LOGIN PETUGAS</button>
+    <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1">🏃 SMK JINJANG: MERENTAS DESA</span>
+        <button id="btn-login-toggle" class="btn btn-warning btn-custom" onclick="showLogin()">LOG MASUK PETUGAS</button>
+        <button id="btn-logout" class="btn btn-danger btn-custom hidden" onclick="logout()">LOG KELUAR</button>
+    </div>
 </nav>
 
 <div class="container mt-4">
     <div id="view-dashboard">
-        <h2 class="text-center mb-4">KEDUDUKAN RUMAH SUKAN</h2>
+        <h2 class="text-center fw-bold mb-4">KEDUDUKAN RUMAH SUKAN TERKINI</h2>
         <div id="house-ranking" class="row g-3 mb-5">
             </div>
 
-        <h3 class="mb-3">10 PEMENANG TERKINI</h3>
-        <div class="table-responsive bg-white p-3 rounded shadow-sm">
-            <table class="table table-hover">
-                <thead class="table-dark">
+        <h3 class="fw-bold mb-3">10 PEMENANG TERBARU</h3>
+        <div class="table-responsive bg-white p-4 rounded shadow-sm">
+            <table class="table table-striped">
+                <thead class="table-dark text-center">
                     <tr>
                         <th>NAMA</th>
-                        <th>KATEGORI</th>
+                        <th>KAT</th>
                         <th>RUMAH</th>
                         <th>MASA</th>
-                        <th>KED.</th>
+                        <th>KED</th>
                     </tr>
                 </thead>
-                <tbody id="recent-winners">
-                    </tbody>
+                <tbody id="recent-winners" class="text-center">
+                    <tr><td colspan="5">Memuatkan data...</td></tr>
+                </tbody>
             </table>
         </div>
     </div>
 
     <div id="view-staff" class="hidden">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>PANEL PETUGAS</h2>
-            <button class="btn btn-danger" onclick="logout()">LOGOUT</button>
-        </div>
-
-        <ul class="nav nav-tabs mb-4 no-print">
+        <ul class="nav nav-tabs mb-4 no-print" id="staffTabs">
             <li class="nav-item"><a class="nav-link active" href="#" onclick="switchTab('keputusan')">KEPUTUSAN</a></li>
             <li class="nav-item"><a class="nav-link" href="#" onclick="switchTab('senarai')">SENARAI PEMENANG</a></li>
-            <li class="nav-item"><a class="nav-link" href="#" onclick="switchTab('cetak')">CETAK</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" onclick="switchTab('cetak')">CETAK SIJIL/SENARAI</a></li>
         </ul>
 
         <div id="tab-keputusan">
-            <div class="row mb-3">
+            <div class="alert alert-info no-print">Pilih kategori & masukkan maklumat. Klik <b>SIMPAN SEMUA</b> untuk hantar.</div>
+            <div class="row mb-3 no-print">
                 <div class="col-md-4">
+                    <label class="fw-bold">Pilih Kategori:</label>
                     <select id="sel-kategori" class="form-select" onchange="generateRows()">
-                        <option value="">Pilih Kategori</option>
-                        <option value="L1">L1</option><option value="P1">P1</option>
-                        <option value="L2">L2</option><option value="P2">P2</option>
-                        <option value="L3">L3</option><option value="P3">P3</option>
+                        <option value="">-- KATEGORI --</option>
+                        <option value="L1">L1 (LELAKI 1)</option><option value="P1">P1 (PEREMPUAN 1)</option>
+                        <option value="L2">L2 (LELAKI 2)</option><option value="P2">P2 (PEREMPUAN 2)</option>
+                        <option value="L3">L3 (LELAKI 3)</option><option value="P3">P3 (PEREMPUAN 3)</option>
                     </select>
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-bordered bg-white">
-                    <thead>
+                <table class="table table-bordered bg-white shadow-sm">
+                    <thead class="table-secondary">
                         <tr>
-                            <th>KED.</th>
-                            <th>NAMA</th>
-                            <th>RUMAH SUKAN</th>
-                            <th>MASA</th>
+                            <th width="50">KED</th>
+                            <th>NAMA PESERTA</th>
+                            <th width="200">RUMAH SUKAN</th>
+                            <th width="150">MASA (00:00)</th>
                         </tr>
                     </thead>
-                    <tbody id="input-rows">
-                        </tbody>
+                    <tbody id="input-rows"></tbody>
                 </table>
             </div>
-            <button class="btn btn-success btn-lg w-100 mb-5" onclick="saveData()">SIMPAN SEMUA</button>
+            <button class="btn btn-success btn-lg w-100 mb-5 no-print" onclick="saveData()">SIMPAN SEMUA KEPUTUSAN</button>
+        </div>
+
+        <div id="tab-senarai" class="hidden">
+            <h3 class="mb-3">SENARAI PEMENANG KESELURUHAN</h3>
+            <div id="full-list-container"></div>
         </div>
     </div>
 </div>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyxc4O6T7hceczVJ3GXWrQvsHx2pxtFJAI8ItG185baQB6sP9RSdFtHnJNnir7HlH02lg/exec"; // Ganti dengan URL Web App Cikgu
+    // GANTI URL INI DENGAN URL WEB APP GOOGLE SCRIPT ANDA
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyxc4O6T7hceczVJ3GXWrQvsHx2pxtFJAI8ItG185baQB6sP9RSdFtHnJNnir7HlH02lg/exec";
 
+    // 1. LOGIN SYSTEM
     function showLogin() {
-        let pass = prompt("Masukkan Kata Laluan Petugas:");
+        let pass = prompt("Sila Masukkan Kata Laluan Petugas:");
         if(pass === "smkjinjang123") {
             document.getElementById('view-dashboard').classList.add('hidden');
             document.getElementById('view-staff').classList.remove('hidden');
-        } else {
+            document.getElementById('btn-login-toggle').classList.add('hidden');
+            document.getElementById('btn-logout').classList.remove('hidden');
+        } else if (pass !== null) {
             alert("Katalaluan Salah!");
         }
     }
 
-    function logout() {
-        location.reload();
+    function logout() { location.reload(); }
+
+    function switchTab(tab) {
+        document.getElementById('tab-keputusan').classList.add('hidden');
+        document.getElementById('tab-senarai').classList.add('hidden');
+        
+        if(tab === 'keputusan') document.getElementById('tab-keputusan').classList.remove('hidden');
+        if(tab === 'senarai') {
+            document.getElementById('tab-senarai').classList.remove('hidden');
+            fetchFullData();
+        }
+        if(tab === 'cetak') window.print();
     }
 
+    // 2. GENERATE ROWS FOR INPUT
     function generateRows() {
+        const kat = document.getElementById('sel-kategori').value;
         const tbody = document.getElementById('input-rows');
         tbody.innerHTML = '';
+        if(!kat) return;
+
         for(let i=1; i<=30; i++) {
             tbody.innerHTML += `
                 <tr>
-                    <td>${i}</td>
-                    <td><input type="text" class="form-control form-control-sm" name="nama_${i}"></td>
+                    <td class="text-center fw-bold">${i}</td>
+                    <td><input type="text" class="form-control form-control-sm in-nama" data-ked="${i}"></td>
                     <td>
-                        <select class="form-select form-select-sm" name="rumah_${i}">
+                        <select class="form-select form-select-sm in-rumah">
                             <option value="MERAH">MERAH</option>
                             <option value="BIRU">BIRU</option>
                             <option value="KUNING">KUNING</option>
@@ -131,35 +157,90 @@
                             <option value="UNGU">UNGU</option>
                         </select>
                     </td>
-                    <td><input type="text" class="form-control form-control-sm" placeholder="00:00" name="masa_${i}"></td>
-                </tr>
-            `;
+                    <td><input type="text" class="form-control form-control-sm in-masa" placeholder="00:00"></td>
+                </tr>`;
         }
     }
 
-    // Fungsi Dashboard: Simulasi Ranking (Nanti akan ditarik dari API)
-    function updateDashboard() {
-        const houses = [
-            { name: 'MERAH', score: 150, class: 'card-merah' },
-            { name: 'BIRU', score: 200, class: 'card-biru' },
-            { name: 'KUNING', score: 180, class: 'card-kuning' },
-            { name: 'HIJAU', score: 90, class: 'card-hijau' },
-            { name: 'UNGU', score: 210, class: 'card-ungu' }
-        ].sort((a,b) => b.score - a.score);
+    // 3. SAVE DATA TO GOOGLE SHEETS
+    async function saveData() {
+        const kat = document.getElementById('sel-kategori').value;
+        if(!kat) { alert("Sila pilih kategori dahulu!"); return; }
 
-        const container = document.getElementById('house-ranking');
-        container.innerHTML = houses.map((h, index) => `
-            <div class="col">
-                <div class="card rank-card ${h.class} text-center p-3 shadow">
-                    <h5>NO ${index + 1}</h5>
-                    <h3>${h.name}</h3>
-                    <h2 class="fw-bold">${h.score}</h2>
-                </div>
-            </div>
-        `).join('');
+        const data = [];
+        const names = document.querySelectorAll('.in-nama');
+        const houses = document.querySelectorAll('.in-rumah');
+        const times = document.querySelectorAll('.in-masa');
+
+        names.forEach((el, i) => {
+            if(el.value.trim() !== "") {
+                data.push({
+                    kategori: kat,
+                    nama: el.value.toUpperCase(),
+                    rumah: houses[i].value,
+                    masa: times[i].value || "-",
+                    kedudukan: el.getAttribute('data-ked')
+                });
+            }
+        });
+
+        if(data.length === 0) { alert("Tiada data diisi!"); return; }
+
+        if(!confirm("Hantar " + data.length + " data ke sistem?")) return;
+
+        try {
+            // Kita guna fetch dengan mode: 'no-cors' kerana Google Apps Script tidak benarkan direct CORS
+            // Nota: Dengan no-cors, kita tak dapat baca response 'Success', tapi data tetap masuk.
+            await fetch(GAS_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            alert("Data sedang diproses. Sila tunggu 5 saat dan semak Dashboard.");
+            location.reload();
+        } catch (e) {
+            alert("Ralat sambungan: " + e.message);
+        }
     }
 
-    window.onload = updateDashboard;
+    // 4. FETCH DATA FOR DASHBOARD
+    async function updateDashboard() {
+        try {
+            const res = await fetch(GAS_URL + "?action=read");
+            const json = await res.json();
+            
+            // Update Ranking Rumah
+            const rankContainer = document.getElementById('house-ranking');
+            rankContainer.innerHTML = json.ranking.map((h, i) => `
+                <div class="col">
+                    <div class="card rank-card card-${h.rumah.toLowerCase()} text-center p-3">
+                        <small>NO ${i+1}</small>
+                        <h4 class="fw-bold mb-0">${h.rumah}</h4>
+                        <h2 class="fw-bold">${h.skor}</h2>
+                    </div>
+                </div>`).join('');
+
+            // Update 10 Pemenang Terkini
+            const recentContainer = document.getElementById('recent-winners');
+            recentContainer.innerHTML = json.recent.map(p => `
+                <tr>
+                    <td>${p.nama}</td>
+                    <td>${p.kategori}</td>
+                    <td class="fw-bold text-${p.rumah.toLowerCase() === 'kuning' ? 'dark' : p.rumah.toLowerCase()}">${p.rumah}</td>
+                    <td>${p.masa}</td>
+                    <td>${p.kedudukan}</td>
+                </tr>`).join('');
+
+        } catch (e) {
+            console.log("Menunggu data...");
+        }
+    }
+
+    window.onload = () => {
+        updateDashboard();
+        setInterval(updateDashboard, 15000); // Auto-refresh dashboard setiap 15 saat
+    };
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
