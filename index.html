@@ -49,13 +49,13 @@
 
     <div id="view-staff" class="hidden">
         <ul class="nav nav-tabs mb-4 no-print" id="staffTabs">
-            <li class="nav-item"><a class="nav-link active" id="link-keputusan" href="#" onclick="switchTab('keputusan')">KEPUTUSAN</a></li>
-            <li class="nav-item"><a class="nav-link" id="link-senarai" href="#" onclick="switchTab('senarai')">SENARAI PEMENANG</a></li>
+            <li class="nav-item"><a class="nav-link active" id="l-kep" href="#" onclick="switchTab('keputusan')">KEPUTUSAN</a></li>
+            <li class="nav-item"><a class="nav-link" id="l-sen" href="#" onclick="switchTab('senarai')">SENARAI PEMENANG</a></li>
             <li class="nav-item"><a class="nav-link" href="#" onclick="switchTab('cetak')">CETAK</a></li>
         </ul>
 
         <div id="tab-keputusan">
-            <div id="loading-spinner" class="alert alert-warning hidden">Menyemak data sedia ada...</div>
+            <div id="loading-spinner" class="alert alert-info hidden">Menyemak data sedia ada...</div>
             <div class="row mb-3 no-print">
                 <div class="col-md-4">
                     <label class="fw-bold">Pilih Kategori:</label>
@@ -80,14 +80,13 @@
 
         <div id="tab-senarai" class="hidden">
             <h3 class="mb-3">SENARAI PEMENANG KESELURUHAN</h3>
-            <div id="full-list-container" class="bg-white p-3 rounded shadow-sm">
-                </div>
+            <div id="full-list-container" class="bg-white p-3 rounded shadow-sm"></div>
         </div>
     </div>
 </div>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxMZk15_TgZ2QgNfGrt2N9LNXwqx2XoFXGeXHHERmU0DbHDkw1-wk0jsUyiFNPpo_eBdg/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwffAhLY7qhbmUqVDlEPxl6pNtYvteAIpuDaysAuGsNFbJP9ANgzKD5Ia1rbiEnE_wy6A/exec";
 
     function showLogin() {
         let pass = prompt("Sila Masukkan Kata Laluan Petugas:");
@@ -104,22 +103,19 @@
     function switchTab(tab) {
         document.getElementById('tab-keputusan').classList.add('hidden');
         document.getElementById('tab-senarai').classList.add('hidden');
-        document.getElementById('link-keputusan').classList.remove('active');
-        document.getElementById('link-senarai').classList.remove('active');
+        document.getElementById('l-kep').classList.remove('active');
+        document.getElementById('l-sen').classList.remove('active');
 
         if(tab === 'keputusan') {
             document.getElementById('tab-keputusan').classList.remove('hidden');
-            document.getElementById('link-keputusan').classList.add('active');
+            document.getElementById('l-kep').classList.add('active');
         } else if(tab === 'senarai') {
             document.getElementById('tab-senarai').classList.remove('hidden');
-            document.getElementById('link-senarai').classList.add('active');
+            document.getElementById('l-sen').classList.add('active');
             fetchFullData();
-        } else if(tab === 'cetak') {
-            window.print();
-        }
+        } else if(tab === 'cetak') { window.print(); }
     }
 
-    // FUNGSI CEK DATA SEDIA ADA SEBELUM GENERATE BARIS
     async function checkAndGenerate() {
         const kat = document.getElementById('sel-kategori').value;
         const tbody = document.getElementById('input-rows');
@@ -129,11 +125,10 @@
 
         spinner.classList.remove('hidden');
         try {
-            const res = await fetch(GAS_URL + "?action=getKategori&kat=" + kat);
+            const res = await fetch(`${GAS_URL}?action=getKategori&kat=${kat}`);
             const existingData = await res.json();
             
             for(let i=1; i<=30; i++) {
-                // Cari jika ada data bagi kedudukan i
                 const record = existingData.find(d => d.kedudukan == i);
                 const valNama = record ? record.nama : "";
                 const valRumah = record ? record.rumah : "MERAH";
@@ -156,16 +151,22 @@
                     </tr>`;
             }
         } catch (e) {
-            alert("Ralat memanggil data sedia ada.");
-        } finally {
-            spinner.classList.add('hidden');
+            alert("Ralat memanggil data. Menjana baris kosong.");
+            generateEmptyRows();
+        } finally { spinner.classList.add('hidden'); }
+    }
+
+    function generateEmptyRows() {
+        const tbody = document.getElementById('input-rows');
+        tbody.innerHTML = '';
+        for(let i=1; i<=30; i++) {
+            tbody.innerHTML += `<tr><td class="text-center fw-bold">${i}</td><td><input type="text" class="form-control form-control-sm in-nama" data-ked="${i}"></td><td><select class="form-select form-select-sm in-rumah"><option value="MERAH">MERAH</option><option value="BIRU">BIRU</option><option value="KUNING">KUNING</option><option value="HIJAU">HIJAU</option><option value="UNGU">UNGU</option></select></td><td><input type="text" class="form-control form-control-sm in-masa" placeholder="00:00"></td></tr>`;
         }
     }
 
     async function saveData() {
         const kat = document.getElementById('sel-kategori').value;
         if(!kat) { alert("Sila pilih kategori!"); return; }
-        
         const data = [];
         const names = document.querySelectorAll('.in-nama');
         const houses = document.querySelectorAll('.in-rumah');
@@ -173,77 +174,42 @@
 
         names.forEach((el, i) => {
             if(el.value.trim() !== "") {
-                data.push({
-                    kategori: kat,
-                    nama: el.value.toUpperCase(),
-                    rumah: houses[i].value,
-                    masa: times[i].value || "-",
-                    kedudukan: el.getAttribute('data-ked')
-                });
+                data.push({ kategori: kat, nama: el.value.toUpperCase(), rumah: houses[i].value, masa: times[i].value || "-", kedudukan: el.getAttribute('data-ked') });
             }
         });
 
         const btn = document.getElementById('btn-save');
-        btn.disabled = true;
-        btn.innerText = "Sedang Menyimpan...";
+        btn.disabled = true; btn.innerText = "Menyimpan...";
 
         try {
-            await fetch(GAS_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify({ action: "save", data: data, kategori: kat })
-            });
-            alert("Berjaya disimpan/dikemaskini!");
-            location.reload();
-        } catch (e) {
-            alert("Ralat: " + e.message);
-            btn.disabled = false;
-            btn.innerText = "SIMPAN SEMUA KEPUTUSAN";
-        }
+            await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "save", data: data, kategori: kat }) });
+            alert("Berjaya disimpan!"); location.reload();
+        } catch (e) { alert("Ralat: " + e.message); btn.disabled = false; btn.innerText = "SIMPAN SEMUA KEPUTUSAN"; }
     }
 
     async function fetchFullData() {
         const container = document.getElementById('full-list-container');
         container.innerHTML = "Memuatkan senarai...";
         try {
-            const res = await fetch(GAS_URL + "?action=readFull");
+            const res = await fetch(`${GAS_URL}?action=readFull`);
             const data = await res.json();
-            
-            if(data.length === 0) {
-                container.innerHTML = "Tiada rekod dijumpai.";
-                return;
-            }
-
+            if(data.length === 0) { container.innerHTML = "Tiada rekod."; return; }
             let html = '<table class="table table-sm table-bordered"><thead><tr class="table-dark"><th>KAT</th><th>KED</th><th>NAMA</th><th>RUMAH</th><th>MASA</th></tr></thead><tbody>';
-            data.forEach(p => {
-                html += `<tr><td>${p.kategori}</td><td>${p.kedudukan}</td><td>${p.nama}</td><td>${p.rumah}</td><td>${p.masa}</td></tr>`;
-            });
+            data.forEach(p => { html += `<tr><td>${p.kategori}</td><td>${p.kedudukan}</td><td>${p.nama}</td><td>${p.rumah}</td><td>${p.masa}</td></tr>`; });
             html += '</tbody></table>';
             container.innerHTML = html;
-        } catch (e) {
-            container.innerHTML = "Ralat memuatkan data.";
-        }
+        } catch (e) { container.innerHTML = "Ralat data."; }
     }
 
     async function updateDashboard() {
         try {
-            const res = await fetch(GAS_URL + "?action=read");
+            const res = await fetch(`${GAS_URL}?action=read`);
             const json = await res.json();
-            
             const rankContainer = document.getElementById('house-ranking');
-            rankContainer.innerHTML = json.ranking.map((h, i) => `
-                <div class="col">
-                    <div class="card rank-card card-${h.rumah.toLowerCase()} text-center p-3">
-                        <small>NO ${i+1}</small>
-                        <h4 class="fw-bold mb-0">${h.rumah}</h4>
-                        <h2 class="fw-bold">${h.skor}</h2>
-                    </div>
-                </div>`).join('');
-
+            rankContainer.innerHTML = json.ranking.map((h, i) => `<div class="col"><div class="card rank-card card-${h.rumah.toLowerCase()} text-center p-3"><small>NO ${i+1}</small><h4 class="fw-bold mb-0">${h.rumah}</h4><h2 class="fw-bold">${h.skor}</h2></div></div>`).join('');
             const recentContainer = document.getElementById('recent-winners');
-            recentContainer.innerHTML = json.recent.map(p => `
-                <tr><td>${p.nama}</td><td>${p.kategori}</td><td class="fw-bold text-${p.rumah.toLowerCase() === 'kuning' ? 'dark' : p.rumah.toLowerCase()}">${p.rumah}</td><td>${p.masa}</td><td>${p.kedudukan}</td></tr>`).join('');
-        } catch (e) { console.log("Waiting for data..."); }
+            recentContainer.innerHTML = json.recent.map(p => `<tr><td>${p.nama}</td><td>${p.kategori}</td><td class="fw-bold text-${p.rumah.toLowerCase() === 'kuning' ? 'dark' : p.rumah.toLowerCase()}">${p.rumah}</td><td>${p.masa}</td><td>${p.kedudukan}</td></tr>`).join('');
+        } catch (e) { console.log("Updating..."); }
     }
 
     window.onload = () => { updateDashboard(); setInterval(updateDashboard, 15000); };
