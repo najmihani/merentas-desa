@@ -16,8 +16,7 @@
         .card-hijau { background: #198754; color: white; }
         .card-ungu { background: #6f42c1; color: white; }
         .rank-card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .btn-custom { border-radius: 25px; padding: 10px 25px; font-weight: bold; }
-        @media print { .no-print, .btn, .navbar, .nav-tabs { display: none !important; } .container { width: 100%; max-width: 100%; } }
+        @media print { .no-print, .btn, .navbar, .nav-tabs { display: none !important; } }
     </style>
 </head>
 <body>
@@ -25,8 +24,8 @@
 <nav class="navbar navbar-expand-lg px-4 py-3 no-print">
     <div class="container-fluid">
         <span class="navbar-brand mb-0 h1">🏃 SMK JINJANG: MERENTAS DESA</span>
-        <button id="btn-login-toggle" class="btn btn-warning btn-custom" onclick="showLogin()">LOG MASUK PETUGAS</button>
-        <button id="btn-logout" class="btn btn-danger btn-custom hidden" onclick="logout()">LOG KELUAR</button>
+        <button id="btn-login-toggle" class="btn btn-warning" onclick="showLogin()">LOG MASUK PETUGAS</button>
+        <button id="btn-logout" class="btn btn-danger hidden" onclick="logout()">LOG KELUAR</button>
     </div>
 </nav>
 
@@ -36,11 +35,11 @@
         <div id="house-ranking" class="row g-3 mb-5"></div>
         <h3 class="fw-bold mb-3">10 PEMENANG TERBARU</h3>
         <div class="table-responsive bg-white p-4 rounded shadow-sm">
-            <table class="table table-striped">
-                <thead class="table-dark text-center">
+            <table class="table table-striped text-center">
+                <thead class="table-dark">
                     <tr><th>NAMA</th><th>KAT</th><th>RUMAH</th><th>MASA</th><th>KED</th></tr>
                 </thead>
-                <tbody id="recent-winners" class="text-center">
+                <tbody id="recent-winners">
                     <tr><td colspan="5">Memuatkan data...</td></tr>
                 </tbody>
             </table>
@@ -48,15 +47,15 @@
     </div>
 
     <div id="view-staff" class="hidden">
-        <ul class="nav nav-tabs mb-4 no-print" id="staffTabs">
+        <ul class="nav nav-tabs mb-4 no-print">
             <li class="nav-item"><a class="nav-link active" id="l-kep" href="#" onclick="switchTab('keputusan')">KEPUTUSAN</a></li>
             <li class="nav-item"><a class="nav-link" id="l-sen" href="#" onclick="switchTab('senarai')">SENARAI PEMENANG</a></li>
-            <li class="nav-item"><a class="nav-link" href="#" onclick="switchTab('cetak')">CETAK</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" onclick="window.print()">CETAK</a></li>
         </ul>
 
         <div id="tab-keputusan">
-            <div id="loading-spinner" class="alert alert-info hidden">Menyemak data sedia ada...</div>
-            <div class="row mb-3 no-print">
+            <div id="loading-spinner" class="alert alert-info hidden">Menyemak data...</div>
+            <div class="row mb-3">
                 <div class="col-md-4">
                     <label class="fw-bold">Pilih Kategori:</label>
                     <select id="sel-kategori" class="form-select" onchange="checkAndGenerate()">
@@ -75,7 +74,7 @@
                     <tbody id="input-rows"></tbody>
                 </table>
             </div>
-            <button class="btn btn-success btn-lg w-100 mb-5 no-print" id="btn-save" onclick="saveData()">SIMPAN SEMUA KEPUTUSAN</button>
+            <button class="btn btn-success btn-lg w-100 mb-5" id="btn-save" onclick="saveData()">SIMPAN SEMUA KEPUTUSAN</button>
         </div>
 
         <div id="tab-senarai" class="hidden">
@@ -86,7 +85,7 @@
 </div>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwffAhLY7qhbmUqVDlEPxl6pNtYvteAIpuDaysAuGsNFbJP9ANgzKD5Ia1rbiEnE_wy6A/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxD_or7b6TOBjI1fOdVeZw2ltHs_IPaZAfbd-hBcLRycY9zQ8aEj2lnMUvlPlPsa4DusA/exec";
 
     function showLogin() {
         let pass = prompt("Sila Masukkan Kata Laluan Petugas:");
@@ -105,113 +104,82 @@
         document.getElementById('tab-senarai').classList.add('hidden');
         document.getElementById('l-kep').classList.remove('active');
         document.getElementById('l-sen').classList.remove('active');
-
-        if(tab === 'keputusan') {
-            document.getElementById('tab-keputusan').classList.remove('hidden');
-            document.getElementById('l-kep').classList.add('active');
-        } else if(tab === 'senarai') {
-            document.getElementById('tab-senarai').classList.remove('hidden');
-            document.getElementById('l-sen').classList.add('active');
-            fetchFullData();
-        } else if(tab === 'cetak') { window.print(); }
+        if(tab === 'keputusan') { document.getElementById('tab-keputusan').classList.remove('hidden'); document.getElementById('l-kep').classList.add('active'); }
+        else if(tab === 'senarai') { document.getElementById('tab-senarai').classList.remove('hidden'); document.getElementById('l-sen').classList.add('active'); fetchFullData(); }
     }
 
     async function checkAndGenerate() {
         const kat = document.getElementById('sel-kategori').value;
         const tbody = document.getElementById('input-rows');
         const spinner = document.getElementById('loading-spinner');
-        tbody.innerHTML = '';
-        if(!kat) return;
-
+        tbody.innerHTML = ''; if(!kat) return;
         spinner.classList.remove('hidden');
         try {
             const res = await fetch(`${GAS_URL}?action=getKategori&kat=${kat}`);
             const existingData = await res.json();
-            
             for(let i=1; i<=30; i++) {
                 const record = existingData.find(d => d.kedudukan == i);
-                const valNama = record ? record.nama : "";
-                const valRumah = record ? record.rumah : "MERAH";
-                const valMasa = record ? record.masa : "";
-
                 tbody.innerHTML += `
                     <tr>
                         <td class="text-center fw-bold">${i}</td>
-                        <td><input type="text" class="form-control form-control-sm in-nama" value="${valNama}" data-ked="${i}"></td>
+                        <td><input type="text" class="form-control form-control-sm in-nama" value="${record ? record.nama : ""}" data-ked="${i}"></td>
                         <td>
                             <select class="form-select form-select-sm in-rumah">
-                                <option value="MERAH" ${valRumah=='MERAH'?'selected':''}>MERAH</option>
-                                <option value="BIRU" ${valRumah=='BIRU'?'selected':''}>BIRU</option>
-                                <option value="KUNING" ${valRumah=='KUNING'?'selected':''}>KUNING</option>
-                                <option value="HIJAU" ${valRumah=='HIJAU'?'selected':''}>HIJAU</option>
-                                <option value="UNGU" ${valRumah=='UNGU'?'selected':''}>UNGU</option>
+                                <option value="MERAH" ${record && record.rumah=='MERAH'?'selected':''}>MERAH</option>
+                                <option value="BIRU" ${record && record.rumah=='BIRU'?'selected':''}>BIRU</option>
+                                <option value="KUNING" ${record && record.rumah=='KUNING'?'selected':''}>KUNING</option>
+                                <option value="HIJAU" ${record && record.rumah=='HIJAU'?'selected':''}>HIJAU</option>
+                                <option value="UNGU" ${record && record.rumah=='UNGU'?'selected':''}>UNGU</option>
                             </select>
                         </td>
-                        <td><input type="text" class="form-control form-control-sm in-masa" value="${valMasa}" placeholder="00:00"></td>
+                        <td><input type="text" class="form-control form-control-sm in-masa" value="${record ? record.masa : ""}" placeholder="00:00"></td>
                     </tr>`;
             }
-        } catch (e) {
-            alert("Ralat memanggil data. Menjana baris kosong.");
-            generateEmptyRows();
-        } finally { spinner.classList.add('hidden'); }
+        } catch (e) { generateEmptyRows(); } finally { spinner.classList.add('hidden'); }
     }
 
     function generateEmptyRows() {
         const tbody = document.getElementById('input-rows');
         tbody.innerHTML = '';
         for(let i=1; i<=30; i++) {
-            tbody.innerHTML += `<tr><td class="text-center fw-bold">${i}</td><td><input type="text" class="form-control form-control-sm in-nama" data-ked="${i}"></td><td><select class="form-select form-select-sm in-rumah"><option value="MERAH">MERAH</option><option value="BIRU">BIRU</option><option value="KUNING">KUNING</option><option value="HIJAU">HIJAU</option><option value="UNGU">UNGU</option></select></td><td><input type="text" class="form-control form-control-sm in-masa" placeholder="00:00"></td></tr>`;
+            tbody.innerHTML += `<tr><td class="text-center fw-bold">${i}</td><td><input type="text" class="form-control in-nama" data-ked="${i}"></td><td><select class="form-select in-rumah"><option value="MERAH">MERAH</option><option value="BIRU">BIRU</option><option value="KUNING">KUNING</option><option value="HIJAU">HIJAU</option><option value="UNGU">UNGU</option></select></td><td><input type="text" class="form-control in-masa" placeholder="00:00"></td></tr>`;
         }
     }
 
     async function saveData() {
         const kat = document.getElementById('sel-kategori').value;
-        if(!kat) { alert("Sila pilih kategori!"); return; }
+        if(!kat) return alert("Pilih kategori!");
         const data = [];
         const names = document.querySelectorAll('.in-nama');
         const houses = document.querySelectorAll('.in-rumah');
         const times = document.querySelectorAll('.in-masa');
-
-        names.forEach((el, i) => {
-            if(el.value.trim() !== "") {
-                data.push({ kategori: kat, nama: el.value.toUpperCase(), rumah: houses[i].value, masa: times[i].value || "-", kedudukan: el.getAttribute('data-ked') });
-            }
-        });
-
-        const btn = document.getElementById('btn-save');
-        btn.disabled = true; btn.innerText = "Menyimpan...";
-
+        names.forEach((el, i) => { if(el.value.trim() !== "") data.push({ kategori: kat, nama: el.value.toUpperCase(), rumah: houses[i].value, masa: times[i].value || "-", kedudukan: el.getAttribute('data-ked') }); });
+        const btn = document.getElementById('btn-save'); btn.disabled = true; btn.innerText = "Menyimpan...";
         try {
             await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "save", data: data, kategori: kat }) });
-            alert("Berjaya disimpan!"); location.reload();
-        } catch (e) { alert("Ralat: " + e.message); btn.disabled = false; btn.innerText = "SIMPAN SEMUA KEPUTUSAN"; }
+            alert("Berjaya!"); location.reload();
+        } catch (e) { alert("Ralat!"); btn.disabled = false; }
     }
 
     async function fetchFullData() {
         const container = document.getElementById('full-list-container');
-        container.innerHTML = "Memuatkan senarai...";
         try {
             const res = await fetch(`${GAS_URL}?action=readFull`);
             const data = await res.json();
-            if(data.length === 0) { container.innerHTML = "Tiada rekod."; return; }
             let html = '<table class="table table-sm table-bordered"><thead><tr class="table-dark"><th>KAT</th><th>KED</th><th>NAMA</th><th>RUMAH</th><th>MASA</th></tr></thead><tbody>';
             data.forEach(p => { html += `<tr><td>${p.kategori}</td><td>${p.kedudukan}</td><td>${p.nama}</td><td>${p.rumah}</td><td>${p.masa}</td></tr>`; });
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        } catch (e) { container.innerHTML = "Ralat data."; }
+            container.innerHTML = html + '</tbody></table>';
+        } catch (e) { container.innerHTML = "Tiada data."; }
     }
 
     async function updateDashboard() {
         try {
             const res = await fetch(`${GAS_URL}?action=read`);
             const json = await res.json();
-            const rankContainer = document.getElementById('house-ranking');
-            rankContainer.innerHTML = json.ranking.map((h, i) => `<div class="col"><div class="card rank-card card-${h.rumah.toLowerCase()} text-center p-3"><small>NO ${i+1}</small><h4 class="fw-bold mb-0">${h.rumah}</h4><h2 class="fw-bold">${h.skor}</h2></div></div>`).join('');
-            const recentContainer = document.getElementById('recent-winners');
-            recentContainer.innerHTML = json.recent.map(p => `<tr><td>${p.nama}</td><td>${p.kategori}</td><td class="fw-bold text-${p.rumah.toLowerCase() === 'kuning' ? 'dark' : p.rumah.toLowerCase()}">${p.rumah}</td><td>${p.masa}</td><td>${p.kedudukan}</td></tr>`).join('');
-        } catch (e) { console.log("Updating..."); }
+            document.getElementById('house-ranking').innerHTML = json.ranking.map((h, i) => `<div class="col"><div class="card rank-card card-${h.rumah.toLowerCase()} text-center p-3"><small>NO ${i+1}</small><h4 class="fw-bold mb-0">${h.rumah}</h4><h2 class="fw-bold">${h.skor}</h2></div></div>`).join('');
+            document.getElementById('recent-winners').innerHTML = json.recent.map(p => `<tr><td>${p.nama}</td><td>${p.kategori}</td><td class="fw-bold text-${p.rumah.toLowerCase()==='kuning'?'dark':p.rumah.toLowerCase()}">${p.rumah}</td><td>${p.masa}</td><td>${p.kedudukan}</td></tr>`).join('');
+        } catch (e) {}
     }
-
     window.onload = () => { updateDashboard(); setInterval(updateDashboard, 15000); };
 </script>
 </body>
