@@ -10,21 +10,14 @@
         body { font-family: 'Poppins', sans-serif; background-color: #f0f2f5; }
         .navbar { background-color: #1a252f; color: white; border-bottom: 4px solid #f39c12; }
         .hidden { display: none; }
-        
-        /* Dashboard Styling */
         .card-merah { background: #dc3545; color: white; }
         .card-biru { background: #0d6efd; color: white; }
         .card-kuning { background: #ffc107; color: #212529; }
         .card-hijau { background: #198754; color: white; }
         .card-ungu { background: #6f42c1; color: white; }
-        
         .rank-card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .btn-custom { border-radius: 25px; padding: 10px 25px; font-weight: bold; }
-        
-        @media print { 
-            .no-print, .btn, .navbar, .nav-tabs { display: none !important; }
-            .container { width: 100%; max-width: 100%; }
-        }
+        @media print { .no-print, .btn, .navbar, .nav-tabs { display: none !important; } .container { width: 100%; max-width: 100%; } }
     </style>
 </head>
 <body>
@@ -40,20 +33,12 @@
 <div class="container mt-4">
     <div id="view-dashboard">
         <h2 class="text-center fw-bold mb-4">KEDUDUKAN RUMAH SUKAN TERKINI</h2>
-        <div id="house-ranking" class="row g-3 mb-5">
-            </div>
-
+        <div id="house-ranking" class="row g-3 mb-5"></div>
         <h3 class="fw-bold mb-3">10 PEMENANG TERBARU</h3>
         <div class="table-responsive bg-white p-4 rounded shadow-sm">
             <table class="table table-striped">
                 <thead class="table-dark text-center">
-                    <tr>
-                        <th>NAMA</th>
-                        <th>KAT</th>
-                        <th>RUMAH</th>
-                        <th>MASA</th>
-                        <th>KED</th>
-                    </tr>
+                    <tr><th>NAMA</th><th>KAT</th><th>RUMAH</th><th>MASA</th><th>KED</th></tr>
                 </thead>
                 <tbody id="recent-winners" class="text-center">
                     <tr><td colspan="5">Memuatkan data...</td></tr>
@@ -64,52 +49,46 @@
 
     <div id="view-staff" class="hidden">
         <ul class="nav nav-tabs mb-4 no-print" id="staffTabs">
-            <li class="nav-item"><a class="nav-link active" href="#" onclick="switchTab('keputusan')">KEPUTUSAN</a></li>
-            <li class="nav-item"><a class="nav-link" href="#" onclick="switchTab('senarai')">SENARAI PEMENANG</a></li>
-            <li class="nav-item"><a class="nav-link" href="#" onclick="switchTab('cetak')">CETAK SIJIL/SENARAI</a></li>
+            <li class="nav-item"><a class="nav-link active" id="link-keputusan" href="#" onclick="switchTab('keputusan')">KEPUTUSAN</a></li>
+            <li class="nav-item"><a class="nav-link" id="link-senarai" href="#" onclick="switchTab('senarai')">SENARAI PEMENANG</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" onclick="switchTab('cetak')">CETAK</a></li>
         </ul>
 
         <div id="tab-keputusan">
-            <div class="alert alert-info no-print">Pilih kategori & masukkan maklumat. Klik <b>SIMPAN SEMUA</b> untuk hantar.</div>
+            <div id="loading-spinner" class="alert alert-warning hidden">Menyemak data sedia ada...</div>
             <div class="row mb-3 no-print">
                 <div class="col-md-4">
                     <label class="fw-bold">Pilih Kategori:</label>
-                    <select id="sel-kategori" class="form-select" onchange="generateRows()">
+                    <select id="sel-kategori" class="form-select" onchange="checkAndGenerate()">
                         <option value="">-- KATEGORI --</option>
-                        <option value="L1">L1 (LELAKI 1)</option><option value="P1">P1 (PEREMPUAN 1)</option>
-                        <option value="L2">L2 (LELAKI 2)</option><option value="P2">P2 (PEREMPUAN 2)</option>
-                        <option value="L3">L3 (LELAKI 3)</option><option value="P3">P3 (PEREMPUAN 3)</option>
+                        <option value="L1">L1</option><option value="P1">P1</option>
+                        <option value="L2">L2</option><option value="P2">P2</option>
+                        <option value="L3">L3</option><option value="P3">P3</option>
                     </select>
                 </div>
             </div>
             <div class="table-responsive">
                 <table class="table table-bordered bg-white shadow-sm">
                     <thead class="table-secondary">
-                        <tr>
-                            <th width="50">KED</th>
-                            <th>NAMA PESERTA</th>
-                            <th width="200">RUMAH SUKAN</th>
-                            <th width="150">MASA (00:00)</th>
-                        </tr>
+                        <tr><th width="50">KED</th><th>NAMA PESERTA</th><th width="200">RUMAH SUKAN</th><th width="150">MASA</th></tr>
                     </thead>
                     <tbody id="input-rows"></tbody>
                 </table>
             </div>
-            <button class="btn btn-success btn-lg w-100 mb-5 no-print" onclick="saveData()">SIMPAN SEMUA KEPUTUSAN</button>
+            <button class="btn btn-success btn-lg w-100 mb-5 no-print" id="btn-save" onclick="saveData()">SIMPAN SEMUA KEPUTUSAN</button>
         </div>
 
         <div id="tab-senarai" class="hidden">
             <h3 class="mb-3">SENARAI PEMENANG KESELURUHAN</h3>
-            <div id="full-list-container"></div>
+            <div id="full-list-container" class="bg-white p-3 rounded shadow-sm">
+                </div>
         </div>
     </div>
 </div>
 
 <script>
-    // GANTI URL INI DENGAN URL WEB APP GOOGLE SCRIPT ANDA
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxGktnMXu-xrofTYjC6QFppj7JcQWJMtn42nUBRNvO-uRb4bv1xZf7J_oWW61yzC-Ca2Q/exec";
 
-    // 1. LOGIN SYSTEM
     function showLogin() {
         let pass = prompt("Sila Masukkan Kata Laluan Petugas:");
         if(pass === "smkjinjang123") {
@@ -117,9 +96,7 @@
             document.getElementById('view-staff').classList.remove('hidden');
             document.getElementById('btn-login-toggle').classList.add('hidden');
             document.getElementById('btn-logout').classList.remove('hidden');
-        } else if (pass !== null) {
-            alert("Katalaluan Salah!");
-        }
+        } else if (pass !== null) { alert("Katalaluan Salah!"); }
     }
 
     function logout() { location.reload(); }
@@ -127,46 +104,68 @@
     function switchTab(tab) {
         document.getElementById('tab-keputusan').classList.add('hidden');
         document.getElementById('tab-senarai').classList.add('hidden');
-        
-        if(tab === 'keputusan') document.getElementById('tab-keputusan').classList.remove('hidden');
-        if(tab === 'senarai') {
+        document.getElementById('link-keputusan').classList.remove('active');
+        document.getElementById('link-senarai').classList.remove('active');
+
+        if(tab === 'keputusan') {
+            document.getElementById('tab-keputusan').classList.remove('hidden');
+            document.getElementById('link-keputusan').classList.add('active');
+        } else if(tab === 'senarai') {
             document.getElementById('tab-senarai').classList.remove('hidden');
+            document.getElementById('link-senarai').classList.add('active');
             fetchFullData();
+        } else if(tab === 'cetak') {
+            window.print();
         }
-        if(tab === 'cetak') window.print();
     }
 
-    // 2. GENERATE ROWS FOR INPUT
-    function generateRows() {
+    // FUNGSI CEK DATA SEDIA ADA SEBELUM GENERATE BARIS
+    async function checkAndGenerate() {
         const kat = document.getElementById('sel-kategori').value;
         const tbody = document.getElementById('input-rows');
+        const spinner = document.getElementById('loading-spinner');
         tbody.innerHTML = '';
         if(!kat) return;
 
-        for(let i=1; i<=30; i++) {
-            tbody.innerHTML += `
-                <tr>
-                    <td class="text-center fw-bold">${i}</td>
-                    <td><input type="text" class="form-control form-control-sm in-nama" data-ked="${i}"></td>
-                    <td>
-                        <select class="form-select form-select-sm in-rumah">
-                            <option value="MERAH">MERAH</option>
-                            <option value="BIRU">BIRU</option>
-                            <option value="KUNING">KUNING</option>
-                            <option value="HIJAU">HIJAU</option>
-                            <option value="UNGU">UNGU</option>
-                        </select>
-                    </td>
-                    <td><input type="text" class="form-control form-control-sm in-masa" placeholder="00:00"></td>
-                </tr>`;
+        spinner.classList.remove('hidden');
+        try {
+            const res = await fetch(GAS_URL + "?action=getKategori&kat=" + kat);
+            const existingData = await res.json();
+            
+            for(let i=1; i<=30; i++) {
+                // Cari jika ada data bagi kedudukan i
+                const record = existingData.find(d => d.kedudukan == i);
+                const valNama = record ? record.nama : "";
+                const valRumah = record ? record.rumah : "MERAH";
+                const valMasa = record ? record.masa : "";
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="text-center fw-bold">${i}</td>
+                        <td><input type="text" class="form-control form-control-sm in-nama" value="${valNama}" data-ked="${i}"></td>
+                        <td>
+                            <select class="form-select form-select-sm in-rumah">
+                                <option value="MERAH" ${valRumah=='MERAH'?'selected':''}>MERAH</option>
+                                <option value="BIRU" ${valRumah=='BIRU'?'selected':''}>BIRU</option>
+                                <option value="KUNING" ${valRumah=='KUNING'?'selected':''}>KUNING</option>
+                                <option value="HIJAU" ${valRumah=='HIJAU'?'selected':''}>HIJAU</option>
+                                <option value="UNGU" ${valRumah=='UNGU'?'selected':''}>UNGU</option>
+                            </select>
+                        </td>
+                        <td><input type="text" class="form-control form-control-sm in-masa" value="${valMasa}" placeholder="00:00"></td>
+                    </tr>`;
+            }
+        } catch (e) {
+            alert("Ralat memanggil data sedia ada.");
+        } finally {
+            spinner.classList.add('hidden');
         }
     }
 
-    // 3. SAVE DATA TO GOOGLE SHEETS
     async function saveData() {
         const kat = document.getElementById('sel-kategori').value;
-        if(!kat) { alert("Sila pilih kategori dahulu!"); return; }
-
+        if(!kat) { alert("Sila pilih kategori!"); return; }
+        
         const data = [];
         const names = document.querySelectorAll('.in-nama');
         const houses = document.querySelectorAll('.in-rumah');
@@ -184,33 +183,53 @@
             }
         });
 
-        if(data.length === 0) { alert("Tiada data diisi!"); return; }
-
-        if(!confirm("Hantar " + data.length + " data ke sistem?")) return;
+        const btn = document.getElementById('btn-save');
+        btn.disabled = true;
+        btn.innerText = "Sedang Menyimpan...";
 
         try {
-            // Kita guna fetch dengan mode: 'no-cors' kerana Google Apps Script tidak benarkan direct CORS
-            // Nota: Dengan no-cors, kita tak dapat baca response 'Success', tapi data tetap masuk.
             await fetch(GAS_URL, {
                 method: 'POST',
                 mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify({ action: "save", data: data, kategori: kat })
             });
-            alert("Data sedang diproses. Sila tunggu 5 saat dan semak Dashboard.");
+            alert("Berjaya disimpan/dikemaskini!");
             location.reload();
         } catch (e) {
-            alert("Ralat sambungan: " + e.message);
+            alert("Ralat: " + e.message);
+            btn.disabled = false;
+            btn.innerText = "SIMPAN SEMUA KEPUTUSAN";
         }
     }
 
-    // 4. FETCH DATA FOR DASHBOARD
+    async function fetchFullData() {
+        const container = document.getElementById('full-list-container');
+        container.innerHTML = "Memuatkan senarai...";
+        try {
+            const res = await fetch(GAS_URL + "?action=readFull");
+            const data = await res.json();
+            
+            if(data.length === 0) {
+                container.innerHTML = "Tiada rekod dijumpai.";
+                return;
+            }
+
+            let html = '<table class="table table-sm table-bordered"><thead><tr class="table-dark"><th>KAT</th><th>KED</th><th>NAMA</th><th>RUMAH</th><th>MASA</th></tr></thead><tbody>';
+            data.forEach(p => {
+                html += `<tr><td>${p.kategori}</td><td>${p.kedudukan}</td><td>${p.nama}</td><td>${p.rumah}</td><td>${p.masa}</td></tr>`;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        } catch (e) {
+            container.innerHTML = "Ralat memuatkan data.";
+        }
+    }
+
     async function updateDashboard() {
         try {
             const res = await fetch(GAS_URL + "?action=read");
             const json = await res.json();
             
-            // Update Ranking Rumah
             const rankContainer = document.getElementById('house-ranking');
             rankContainer.innerHTML = json.ranking.map((h, i) => `
                 <div class="col">
@@ -221,28 +240,13 @@
                     </div>
                 </div>`).join('');
 
-            // Update 10 Pemenang Terkini
             const recentContainer = document.getElementById('recent-winners');
             recentContainer.innerHTML = json.recent.map(p => `
-                <tr>
-                    <td>${p.nama}</td>
-                    <td>${p.kategori}</td>
-                    <td class="fw-bold text-${p.rumah.toLowerCase() === 'kuning' ? 'dark' : p.rumah.toLowerCase()}">${p.rumah}</td>
-                    <td>${p.masa}</td>
-                    <td>${p.kedudukan}</td>
-                </tr>`).join('');
-
-        } catch (e) {
-            console.log("Menunggu data...");
-        }
+                <tr><td>${p.nama}</td><td>${p.kategori}</td><td class="fw-bold text-${p.rumah.toLowerCase() === 'kuning' ? 'dark' : p.rumah.toLowerCase()}">${p.rumah}</td><td>${p.masa}</td><td>${p.kedudukan}</td></tr>`).join('');
+        } catch (e) { console.log("Waiting for data..."); }
     }
 
-    window.onload = () => {
-        updateDashboard();
-        setInterval(updateDashboard, 15000); // Auto-refresh dashboard setiap 15 saat
-    };
+    window.onload = () => { updateDashboard(); setInterval(updateDashboard, 15000); };
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
